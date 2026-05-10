@@ -21,17 +21,20 @@ def home():
 @app.route('/notes', methods=['GET'])
 def get_notes():
 
-    notes = []
+    try:
+        notes = []
 
-    for note in notes_collection.find():
+        for note in notes_collection.find():
 
-        notes.append({
-            "id": str(note.get("_id", "")),
-            "title": note.get("title", ""),
-            "description": note.get("description", "")
-        })
+            notes.append({
+                "id": str(note.get("_id", "")),
+                "title": note.get("title", ""),
+                "description": note.get("description", "")
+            })
 
-    return jsonify(notes)
+        return jsonify(notes)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/notes', methods=['POST'])
