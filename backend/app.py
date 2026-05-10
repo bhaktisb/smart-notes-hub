@@ -3,6 +3,8 @@ from flask_cors import CORS
 from bson.objectid import ObjectId
 from db import notes_collection
 
+import os
+
 app = Flask(__name__)
 
 CORS(
@@ -24,9 +26,9 @@ def get_notes():
     for note in notes_collection.find():
 
         notes.append({
-            "id": str(note["_id"]),
-            "title": note["title"],
-            "description": note["description"]
+            "id": str(note.get("_id", "")),
+            "title": note.get("title", ""),
+            "description": note.get("description", "")
         })
 
     return jsonify(notes)
@@ -35,28 +37,48 @@ def get_notes():
 @app.route('/notes', methods=['POST'])
 def add_note():
 
-    new_note = request.json
+    try:
 
-    notes_collection.insert_one(new_note)
+        new_note = request.json
 
-    return jsonify({
-        "message": "Note added successfully"
-    })
+        notes_collection.insert_one(new_note)
+
+        return jsonify({
+            "message": "Note added successfully"
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
 
 @app.route('/notes/<id>', methods=['DELETE'])
 def delete_note(id):
 
-    notes_collection.delete_one({
-        "_id": ObjectId(id)
-    })
+    try:
 
-    return jsonify({
-        "message": "Note deleted successfully"
-    })
+        notes_collection.delete_one({
+            "_id": ObjectId(id)
+        })
 
+        return jsonify({
+            "message": "Note deleted successfully"
+        })
 
-import os
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
 
 if __name__ == '__main__':
+
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+
+    app.run(
+        host='0.0.0.0',
+        port=port
+    )
